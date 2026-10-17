@@ -1,0 +1,28 @@
+name: build
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: swiftc --version && sw_vers
+      - name: Build universal app
+        run: |
+          ARCHS="arm64 x86_64" bash build_app.sh "$PWD/out/LiveSub.app"
+          lipo -info out/LiveSub.app/Contents/MacOS/LiveSub
+      - name: Smoke test (launch briefly)
+        run: |
+          ( out/LiveSub.app/Contents/MacOS/LiveSub & PID=$!; sleep 5; kill $PID || true ) || true
+          tail -20 ~/Library/Logs/LiveSub.log || true
+      - name: Package
+        run: |
+          mkdir -p dist/LiveSub
+          cp -R out/LiveSub.app worker.py README.txt 설치하기.command icon.png dist/LiveSub/
+          cd dist && ditto -c -k --keepParent LiveSub LiveSub-mac.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LiveSub-mac
+          path: dist/LiveSub-mac.zip
