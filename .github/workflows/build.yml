@@ -11,7 +11,11 @@ jobs:
         run: swiftc --version && sw_vers
       - name: Build universal app
         run: |
-          ARCHS="arm64 x86_64" bash build_app.sh "$PWD/out/LiveSub.app"
+          set -o pipefail
+          if ! ARCHS="arm64 x86_64" bash build_app.sh "$PWD/out/LiveSub.app" 2>&1 | tee build.log; then
+            grep -E "error:" build.log | sort -u | head -10 | while IFS= read -r l; do echo "::error::${l#/Users/runner/work/livesub/livesub/}"; done
+            exit 1
+          fi
           lipo -info out/LiveSub.app/Contents/MacOS/LiveSub
       - name: Smoke test (launch briefly)
         run: |

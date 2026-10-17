@@ -8,7 +8,7 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 TMP="$(mktemp -d)"
 BINS=()
 for A in ${ARCHS:-$(uname -m)}; do
-  swiftc -O -swift-version 5 "$SRC/LiveSub.swift" -o "$TMP/LiveSub-$A" -target "$A-apple-macos13.0" \
+  swiftc -O -swift-version 5 -parse-as-library "$SRC/LiveSub.swift" -o "$TMP/LiveSub-$A" -target "$A-apple-macos13.0" \
     -framework AppKit -framework ScreenCaptureKit -framework CoreMedia -framework AVFoundation
   BINS+=("$TMP/LiveSub-$A")
 done

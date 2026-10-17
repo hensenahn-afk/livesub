@@ -8,8 +8,6 @@ import AVFoundation
 import CoreMedia
 import ScreenCaptureKit
 
-_ = signal(SIGPIPE, SIG_IGN)
-
 let SUPPORT = FileManager.default.homeDirectoryForCurrentUser
     .appendingPathComponent("Library/Application Support/LiveSub")
 let LOG_PATH = FileManager.default.homeDirectoryForCurrentUser
@@ -602,8 +600,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 }
 
-let app = NSApplication.shared
-let delegate = AppDelegate()
-app.delegate = delegate
-app.setActivationPolicy(.accessory)
-app.run()
+@main
+struct LiveSubMain {
+    @MainActor static var delegate: AppDelegate?
+
+    @MainActor static func main() {
+        _ = signal(SIGPIPE, SIG_IGN)
+        let app = NSApplication.shared
+        let d = AppDelegate()
+        delegate = d
+        app.delegate = d
+        app.setActivationPolicy(.accessory)
+        app.run()
+    }
+}
