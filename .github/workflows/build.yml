@@ -1,7 +1,10 @@
 name: build
 on:
   push:
+    branches: [main]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: macos-15
@@ -30,3 +33,9 @@ jobs:
         with:
           name: LiveSub-mac
           path: dist/LiveSub-mac.zip
+      - name: Publish build to 'build' branch
+        run: |
+          mkdir -p /tmp/pub && cp dist/LiveSub-mac.zip /tmp/pub/
+          cd /tmp/pub && git init -q -b build && git add . \
+            && git -c user.name=ci -c user.email=ci@local commit -qm "build ${GITHUB_SHA::7}" \
+            && git push -f -q "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" build
